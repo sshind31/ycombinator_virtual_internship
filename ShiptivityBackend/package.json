@@ -1,0 +1,16 @@
+{
+  "name": "shiptivitybackend",
+  "version": "1.0.0",
+  "description": "This is Shiptivity backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^8.5.1",
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6"
+  }
+}
