@@ -94,7 +94,6 @@ componentDidMount() {
   updateClient(el, target, _, sibling) {
     // Reverting DOM changes from Dragula
     this.drake.cancel(true);
-    console.log(el);
     console.log(this.swimlanes.inProgress.current);
     // Find out which swimlane the Card was moved to
     let targetSwimlane = 'backlog';
@@ -110,13 +109,13 @@ componentDidMount() {
       ...this.state.clients.inProgress,
       ...this.state.clients.complete,
     ];
-    console.log(clientsList);
     const clientThatMoved = clientsList.find(client => client.id === el.dataset.id);
-    
+    console.log(clientThatMoved.status+" $$ "+clientThatMoved.name);
     const clientThatMovedClone = {
       ...clientThatMoved,
       status: targetSwimlane,
     };
+    console.log(clientThatMovedClone.status+" $$ "+clientThatMovedClone.name);
     
     // Remove ClientThatMoved from the clientsList
     const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
