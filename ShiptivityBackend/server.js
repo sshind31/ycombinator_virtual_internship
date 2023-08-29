@@ -3,6 +3,9 @@ const express = require('express');
 const app = express();
 const PORT = 3001;
 
+var cors = require('cors');
+app.use(cors());
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -92,6 +95,7 @@ app.get('/api/v1/clients', (req, res) => {
  * GET /api/v1/clients/{client_id} - get client by id
  */
 app.get('/api/v1/clients/:id', (req, res) => {
+  console.log("cdac");
   const id = parseInt(req.params.id , 10);
   const { valid, messageObj } = validateId(id);
   if (!valid) {
@@ -120,18 +124,21 @@ app.put('/api/v1/clients/:id', (req, res) => {
   if (!valid) {
     res.status(400).send(messageObj);
   }
-
   let { status, priority } = req.body;
-  let clients = db.prepare('select * from clients').all();
-  const client = clients.find(client => client.id === id);
+  console.log(status);
+  console.log(priority);
+  const query=db.prepare('update clients set status=? where id=?');
+  query.run(status,id);
+
+  // let clients = db.prepare('select * from clients').all();
+  // const client = clients.find(client => client.id === id);
 
   /* ---------- Update code below ----------*/
 
 
-
-  return res.status(200).send(clients);
+  return res.status(200).send(db.prepare('select * from clients where id = ?').get(id));
+  //return res.status(200).send(clients);
 });
-
 app.listen(PORT, (error) =>{
     if(!error)
         console.log("Server is Successfully Running, and App is listening on port "+ PORT)
