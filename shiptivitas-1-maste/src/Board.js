@@ -84,16 +84,7 @@ export default class Board extends React.Component {
     );
   }
   componentDidMount() {
-    axios.get('http://localhost:3001/api/v1/clients',).then(res => {
-      this.setState({
-        clients:
-        {
-          backlog: res.data.filter(client => !client.status || client.status === 'backlog').sort(function(a,b){return a.priority-b.priority}),
-          inProgress: res.data.filter(client => client.status && client.status === 'in-progress').sort(function(a,b){return a.priority-b.priority}),
-          complete: res.data.filter(client => client.status && client.status === 'complete').sort(function(a,b){return a.priority-b.priority}),
-        }
-      })
-    });
+    
 
     this.drake = Dragula([
       this.swimlanes.backlog.current,
@@ -101,6 +92,16 @@ export default class Board extends React.Component {
       this.swimlanes.complete.current,
     ]);
     this.drake.on('drop', (el, target, source, sibling) => this.updateClient(el, target, source, sibling));
+    axios.get('http://localhost:3001/api/v1/clients',).then(res => {
+      this.setState({
+        clients:
+        {
+          backlog: res.data.filter(client => !client.status || client.status === 'backlog').sort(function (a, b) { return a.priority - b.priority }),
+          inProgress: res.data.filter(client => client.status && client.status === 'in-progress').sort(function (a, b) { return a.priority - b.priority }),
+          complete: res.data.filter(client => client.status && client.status === 'complete').sort(function (a, b) { return a.priority - b.priority }),
+        }
+      })
+    });
   }
 
   componentWillUnmount() {
@@ -111,6 +112,7 @@ export default class Board extends React.Component {
    * Change the status of client when a Card is moved
    */
   updateClient(el, target, _, sibling) {
+    console.log(target.dataset.id+" ^^ "+target.dataset.name);
     // Reverting DOM changes from Dragula
     this.drake.cancel(true);
     console.log(this.swimlanes.inProgress.current);
@@ -145,24 +147,37 @@ export default class Board extends React.Component {
     
     updatedClients.splice(index === -1 ? updatedClients.length : index, 0, clientThatMovedClone);
     // Update React state to reflect changes
-    this.setState({
-      clients: {
-        backlog: updatedClients.filter(client => !client.status || client.status === 'backlog').sort(function(a,b){return a.priority-b.priority}),
-        inProgress: updatedClients.filter(client => client.status && client.status === 'in-progress').sort(function(a,b){return a.priority-b.priority}),
-        complete: updatedClients.filter(client => client.status && client.status === 'complete').sort(function(a,b){return a.priority-b.priority}),
-      }
-    });
+    // this.setState({
+    //   clients: {
+    //     backlog: updatedClients.filter(client => !client.status || client.status === 'backlog').sort(function(a,b){return a.priority-b.priority}),
+    //     inProgress: updatedClients.filter(client => client.status && client.status === 'in-progress').sort(function(a,b){return a.priority-b.priority}),
+    //     complete: updatedClients.filter(client => client.status && client.status === 'complete').sort(function(a,b){return a.priority-b.priority}),
+    //   }
+    // });
+    
     const payload = {
       status: clientThatMovedClone.status,
-      priority: 1
+      priority: index
     };
     axios
       .put('http://localhost:3001/api/v1/clients/' + clientThatMoved.id, payload)
       .then((res) => {
         console.log(res);
+        axios.get('http://localhost:3001/api/v1/clients',).then(res => {
+          console.log(res);
+          this.setState({
+            clients:
+            {
+              backlog: res.data.filter(client => !client.status || client.status === 'backlog').sort(function (a, b) { return a.priority - b.priority }),
+              inProgress: res.data.filter(client => client.status && client.status === 'in-progress').sort(function (a, b) { return a.priority - b.priority }),
+              complete: res.data.filter(client => client.status && client.status === 'complete').sort(function (a, b) { return a.priority - b.priority }),
+            }
+          })
+        });
       })
       .catch((err) => {
         console.log(err.message);
       });
+
   }
 }
