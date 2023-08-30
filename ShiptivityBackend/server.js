@@ -127,6 +127,10 @@ app.put('/api/v1/clients/:id', (req, res) => {
   let { status, priority } = req.body;
   console.log(status);
   console.log(priority);
+  const singleClient=db.prepare('select status from clients where id=?').get(id);
+  console.log(singleClient);
+  const queryRes=db.prepare('select id, name, priority from clients where priority>? and status=?').all(priority,singleClient.status);
+  console.log(queryRes);
   const query=db.prepare('update clients set status=? where id=?');
   query.run(status,id);
 
