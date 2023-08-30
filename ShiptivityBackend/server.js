@@ -6,7 +6,7 @@ const PORT = 3001;
 var cors = require('cors');
 app.use(cors());
 
-app.use(express.json());
+app.use(express.json());  
 
 app.get('/', (req, res) => {
   return res.status(200).send({'message': 'SHIPTIVITY API. Read documentation to see API docs'});
@@ -127,12 +127,14 @@ app.put('/api/v1/clients/:id', (req, res) => {
   let { status, priority } = req.body;
   console.log(status);
   console.log(priority);
-  const singleClient=db.prepare('select status from clients where id=?').get(id);
+  const singleClient=db.prepare('select status,priority from clients where id=?').get(id);
   console.log(singleClient);
-  const queryRes=db.prepare('select id, name, priority from clients where priority>? and status=?').all(priority,singleClient.status);
-  console.log(queryRes);
-  const query=db.prepare('update clients set status=? where id=?');
-  query.run(status,id);
+  const queryRes1=db.prepare('select id, name, priority from clients where priority>? and status=?').all(singleClient.priority,singleClient.status);
+  console.log(queryRes1);
+  const queryRes2=db.prepare('select id, name, priority from clients where priority>? and status=?').all(priority,status);
+  console.log(queryRes2);
+  // const query=db.prepare('update clients set status=? where id=?');
+  // query.run(status,id);
 
   // let clients = db.prepare('select * from clients').all();
   // const client = clients.find(client => client.id === id);
