@@ -84,8 +84,6 @@ export default class Board extends React.Component {
     );
   }
   componentDidMount() {
-    
-
     this.drake = Dragula([
       this.swimlanes.backlog.current,
       this.swimlanes.inProgress.current,
@@ -112,7 +110,6 @@ export default class Board extends React.Component {
    * Change the status of client when a Card is moved
    */
   updateClient(el, target, _, sibling) {
-    console.log(target.dataset.id+" ^^ "+target.dataset.name);
     // Reverting DOM changes from Dragula
     this.drake.cancel(true);
     console.log(this.swimlanes.inProgress.current);
@@ -131,21 +128,17 @@ export default class Board extends React.Component {
       ...this.state.clients.complete,
     ];
     const clientThatMoved = clientsList.find(client => client.id == el.dataset.id);
-    console.log(clientThatMoved.status + " $$ " + clientThatMoved.name);
     const clientThatMovedClone = {
       ...clientThatMoved,
       status: targetSwimlane,
     };
-    console.log(clientThatMovedClone.status + " $$ " + clientThatMovedClone.name + " $$ " + clientThatMovedClone.id);
-
-    console.log('http://localhost:3001/api/v1/clients/:{' + clientThatMoved.id + '}');
-
+    console.log(clientThatMovedClone.status);
     // Remove ClientThatMoved from the clientsList
-    const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
+    // const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
     // Place ClientThatMoved just before the sibling client, keeping the order
-    const index = updatedClients.findIndex(client => sibling && client.id === sibling.dataset.id);
-    
-    updatedClients.splice(index === -1 ? updatedClients.length : index, 0, clientThatMovedClone);
+    // const index = updatedClients.findIndex(client => sibling && client.id === sibling.dataset.id);
+
+    // updatedClients.splice(index === -1 ? updatedClients.length : index, 0, clientThatMovedClone);
     // Update React state to reflect changes
     // this.setState({
     //   clients: {
@@ -154,17 +147,34 @@ export default class Board extends React.Component {
     //     complete: updatedClients.filter(client => client.status && client.status === 'complete').sort(function(a,b){return a.priority-b.priority}),
     //   }
     // });
-    
-    const payload = {
+    // this.setState({
+    //   clients: {
+    //     backlog: updatedClients.filter(client => !client.status || client.status === 'backlog'),
+    //     inProgress: updatedClients.filter(client => client.status && client.status === 'in-progress'),
+    //     complete: updatedClients.filter(client => client.status && client.status === 'complete'),
+    //   }
+    // });
+    let payload = {
       status: clientThatMovedClone.status,
-      priority: index
-    };
+      priority: 0
+    }
+    if (sibling != null) {
+      payload = {
+        status: clientThatMovedClone.status,
+        priority: clientsList.find(client => client.id == sibling.dataset.id).priority
+      };
+    }
+    else {
+      payload = {
+        status: clientThatMovedClone.status,
+        priority: clientsList.filter(client => !client.status || client.status === clientThatMovedClone.status).length+1
+      };
+    }
     axios
       .put('http://localhost:3001/api/v1/clients/' + clientThatMoved.id, payload)
       .then((res) => {
         console.log(res);
         axios.get('http://localhost:3001/api/v1/clients',).then(res => {
-          console.log(res);
           this.setState({
             clients:
             {
@@ -174,6 +184,7 @@ export default class Board extends React.Component {
             }
           })
         });
+
       })
       .catch((err) => {
         console.log(err.message);
