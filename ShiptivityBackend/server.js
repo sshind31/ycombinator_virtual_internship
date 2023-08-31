@@ -74,6 +74,7 @@ const validatePriority = (priority) => {
  */
 app.get('/api/v1/clients', (req, res) => {
   const status = req.query.status;
+  console.log("All client fetching...");
   if (status) {
     // status can only be either 'backlog' | 'in-progress' | 'complete'
     if (status !== 'backlog' && status !== 'in-progress' && status !== 'complete') {
@@ -128,22 +129,28 @@ app.put('/api/v1/clients/:id', (req, res) => {
   console.log(status);
   console.log(priority);
   const singleClient=db.prepare('select status,priority from clients where id=?').get(id);
-  console.log(singleClient);
+  // console.log(singleClient);
   const queryRes1=db.prepare('select id, name, priority from clients where priority>? and status=?').all(singleClient.priority,singleClient.status);
-  console.log(queryRes1);
-  const queryRes2=db.prepare('select id, name, priority from clients where priority>? and status=?').all(priority,status);
-  console.log(queryRes2);
-  // const query=db.prepare('update clients set status=? where id=?');
-  // query.run(status,id);
+  queryRes1.forEach(client=>{
+    db.prepare('update clients set priority=priority-1 where id=?').run(client.id);
+    console.log(client.id+" ^^ "+client.name+" ^^ "+client.priority);
+  });
+  const queryRes2=db.prepare('select id, name, priority from clients where priority>=? and status=?').all(priority,status);
+  queryRes2.forEach(client=>{
+    db.prepare('update clients set priority=priority+1 where id=?').run(client.id);
+    console.log(client.id+" ^^ "+client.name+" ^^ "+client.priority);
+  });
+  const query=db.prepare('update clients set status=?, priority=? where id=?');
+  query.run(status,priority,id);
 
-  // let clients = db.prepare('select * from clients').all();
+  let clients = db.prepare('select * from clients').all();
   // const client = clients.find(client => client.id === id);
 
   /* ---------- Update code below ----------*/
 
 
-  return res.status(200).send(db.prepare('select * from clients where id = ?').get(id));
-  //return res.status(200).send(clients);
+  // return res.status(200).send(db.prepare('select * from clients where id = ?').get(id));
+  return res.status(200).send(clients);
 });
 app.listen(PORT, (error) =>{
     if(!error)
